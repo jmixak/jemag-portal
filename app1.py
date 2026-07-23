@@ -1,6 +1,7 @@
 import streamlit as st
 import mysql.connector
 import pandas as pd
+import datetime
 
 # Page configuration
 st.set_page_config(page_title="Jemag Portal", page_icon="⚡", layout="wide")
@@ -34,7 +35,6 @@ st.divider()
 # --- TAB 1: VIEW MASTER DIRECTORY ---
 if choice == "View Master Directory":
     st.header("📋 Staff & IT Student Directory")
-    
     conn = get_db_connection()
     if conn:
         try:
@@ -52,7 +52,6 @@ if choice == "View Master Directory":
 # --- TAB 2: LOG STUDENT EVALUATION ---
 elif choice == "Log Student Evaluation":
     st.header("📝 Submit Trainee Evaluation")
-    
     student_id = st.number_input("Enter Student ID", min_value=1, step=1)
     eval_type = st.selectbox("Evaluation Type", ["Mid-Term Review", "Final Defense", "Logbook Check"])
     score = st.slider("Performance Score (0 - 100)", 0, 100, 80)
@@ -75,7 +74,6 @@ elif choice == "Log Student Evaluation":
 # --- TAB 3: REGISTER NEW PROFILE ---
 elif choice == "Register New Profile":
     st.header("👤 Add New Staff or Student Profile")
-    
     col1, col2 = st.columns(2)
     with col1:
         first_name = st.text_input("First Name")
@@ -108,55 +106,145 @@ elif choice == "Register New Profile":
 
 # --- TAB 4: BATTERY PRODUCTION LOGS ---
 elif choice == "🔋 Battery Production":
-    st.header("🔋 Battery Production & Quality Control")
+    st.header("🔋 Comprehensive Battery QC & Production Log")
     
-    # Create two sub-tabs for organizing the workflow!
     tab1, tab2 = st.tabs(["📝 Log New Battery", "📊 View Production History"])
     
-    # Sub-Tab 1: The Input Form
     with tab1:
-        st.subheader("Record a New Battery Unit")
-        with st.form("battery_form", clear_on_submit=True):
+        with st.form("battery_pro_form", clear_on_submit=True):
+            
+            # SECTION 1
+            st.subheader("1. Battery & Client Identification")
             col1, col2 = st.columns(2)
             with col1:
-                serial_number = st.text_input("Battery Serial Number (e.g., JEM-12V-001)")
-                battery_model = st.selectbox("Battery Chemistry/Model", ["LiFePO4", "Lithium-Ion", "Lead-Acid (Deep Cycle)", "Tubular Gel"])
-                voltage = st.selectbox("System Voltage", [12, 24, 48])
+                serial_no = st.text_input("Battery Serial Number *", placeholder="e.g., JBYD2654...")
+                batch_no = st.text_input("Batch Number *")
+                prod_date = st.date_input("Production Date *", datetime.date.today())
+                client_name = st.text_input("Client Name *")
             with col2:
-                capacity = st.number_input("Capacity (Ah)", min_value=10, step=10, value=100)
-                assembled_by = st.text_input("Assembled By (Staff Name)")
-                qc_status = st.selectbox("QC Status", ["Pending", "Passed", "Failed"])
+                contact_details = st.text_input("Contact Details")
+                req_date = st.date_input("Battery Request Date *", datetime.date.today())
+                final_location = st.text_input("Battery Final Location *", placeholder="e.g., Jos")
             
-            notes = st.text_area("Production Notes / Test Results")
-            submit_battery = st.form_submit_button("Save Battery Log")
+            st.divider()
+
+            # SECTION 2
+            st.subheader("2. Cell Information")
+            col3, col4 = st.columns(2)
+            with col3:
+                capacity_ah = st.number_input("Cell capacity (Ah)", min_value=0, value=120)
+                cell_chem = st.selectbox("Cell chemistry *", ["LiFePO4", "NMC", "BYD", "CTL", "EVE", "Other"])
+                num_cells = st.text_input("Number of cells (series / parallel) *", placeholder="e.g., 16S 1P")
+            with col4:
+                cell_supplier = st.text_input("Cell supplier / source *")
+                cell_matching = st.radio("Cell matching confirmation *", ["Yes", "No"], horizontal=True)
+
+            st.divider()
+
+            # SECTION 3
+            st.subheader("3. BMS Configuration")
+            col5, col6 = st.columns(2)
+            with col5:
+                bms_brand = st.text_input("BMS brand *", placeholder="e.g., JK")
+                bms_model = st.text_input("BMS model *", placeholder="e.g., JK_PB2A16S15P")
+                firmware_version = st.text_input("Firmware version (if applicable)", placeholder="e.g., V19.30")
+                comm_type = st.selectbox("Communication type *", ["CAN", "RS485", "Other"])
+            with col6:
+                charge_cutoff = st.text_input("Charge cutoff voltage *", placeholder="e.g., 52.6 V")
+                discharge_cutoff = st.text_input("Discharge cutoff voltage *", placeholder="e.g., 52.6 V")
+                balancing_enabled = st.radio("Balancing enabled *", ["Yes", "No", "Maybe"], horizontal=True)
+
+            st.divider()
+
+            # SECTION 4
+            st.subheader("4. Assembly Checklist")
+            st.write("Checks:")
+            chk_busbars = st.checkbox("Bus bars tightened")
+            chk_temp = st.checkbox("Temperature sensors placed")
+            chk_insulation = st.checkbox("Insulation installed")
+            chk_case = st.checkbox("Case grounded")
+            chk_cable = st.checkbox("Correct cable gauge used")
+            chk_polarity = st.checkbox("Polarity checked")
+            chk_other = st.text_input("Other (specify)", placeholder="e.g., Battery Inspection Completed")
+
+            st.divider()
+
+            # SECTION 5
+            st.subheader("5. Electrical Test Results")
+            col7, col8 = st.columns(2)
+            with col7:
+                ind_cell_voltages = st.text_input("Individual cell voltages (or range) *", placeholder="e.g., 3.2 V")
+                pack_volt_before = st.text_input("Pack voltage before charge *", placeholder="e.g., 52.6 V")
+                pack_volt_after = st.text_input("Pack voltage after full charge *", placeholder="e.g., 52.6 V")
+            with col8:
+                initial_discharge = st.text_input("Initial discharge test result *", placeholder="e.g., Good")
+                load_test = st.radio("Load test passed *", ["Yes", "No"], horizontal=True)
+
+            st.divider()
+
+            # SECTION 6
+            st.subheader("6. Quality Control & Approval")
+            col9, col10 = st.columns(2)
+            with col9:
+                vis_inspect = st.radio("Visual inspection passed *", ["Yes", "No"], horizontal=True)
+                elec_inspect = st.radio("Electrical inspection passed *", ["Yes", "No"], horizontal=True)
+                qc_approval = st.selectbox("QC approval *", ["Pass", "Fail", "Other"])
+            with col10:
+                qc_officer = st.text_input("QC officer name")
+                remarks = st.text_area("Remarks / fault notes", placeholder="e.g., BATTERY IS FIT FOR USE")
+
+            submit_battery = st.form_submit_button("💾 Submit Final QC Report")
             
+            # SUBMIT LOGIC
             if submit_battery:
-                if serial_number and assembled_by:
+                if serial_no and client_name:
                     conn = get_db_connection()
                     if conn:
                         try:
                             cursor = conn.cursor()
-                            query = """INSERT INTO BatteryLogs 
-                                       (SerialNumber, BatteryModel, Voltage, CapacityAh, AssembledBy, QC_Status, ProductionNotes) 
-                                       VALUES (%s, %s, %s, %s, %s, %s, %s)"""
-                            cursor.execute(query, (serial_number, battery_model, voltage, capacity, assembled_by, qc_status, notes))
+                            query = """INSERT INTO BatteryLogs (
+                                BatterySerialNumber, BatchNumber, ProductionDate, ClientName, ContactDetails, 
+                                BatteryRequestDate, BatteryFinalLocation, CellCapacityAh, CellChemistry, 
+                                NumberOfCells, CellSupplier, CellMatching, BMSBrand, BMSModel, FirmwareVersion, 
+                                ChargeCutoffVoltage, DischargeCutoffVoltage, BalancingEnabled, CommunicationType, 
+                                CheckBusBars, CheckTempSensors, CheckInsulation, CheckCaseGrounded, CheckCableGauge, 
+                                CheckPolarity, CheckOther, IndCellVoltages, PackVoltageBefore, PackVoltageAfter, 
+                                InitialDischargeResult, LoadTestPassed, VisualInspectionPassed, ElectricalInspectionPassed, 
+                                QCApproval, QCOfficerName, Remarks
+                            ) VALUES (
+                                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+                                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                            )"""
+                            
+                            # Tuples to pass into database
+                            values = (
+                                serial_no, batch_no, prod_date, client_name, contact_details, 
+                                req_date, final_location, capacity_ah, cell_chem, 
+                                num_cells, cell_supplier, cell_matching, bms_brand, bms_model, firmware_version, 
+                                charge_cutoff, discharge_cutoff, balancing_enabled, comm_type, 
+                                chk_busbars, chk_temp, chk_insulation, chk_case, chk_cable, 
+                                chk_polarity, chk_other, ind_cell_voltages, pack_volt_before, pack_volt_after, 
+                                initial_discharge, load_test, vis_inspect, elec_inspect, 
+                                qc_approval, qc_officer, remarks
+                            )
+                            
+                            cursor.execute(query, values)
                             conn.commit()
                             cursor.close()
-                            st.success(f"✅ Battery {serial_number} logged successfully!")
+                            st.success(f"✅ Battery {serial_no} logged and passed securely into the database!")
                         except mysql.connector.Error as err:
-                            # Handle duplicate serial numbers gracefully
                             if err.errno == 1062: 
-                                st.error(f"⚠️ Serial Number '{serial_number}' already exists in the database.")
+                                st.error(f"⚠️ Serial Number '{serial_no}' already exists in the database.")
                             else:
                                 st.error(f"❌ Error saving battery log: {err}")
                         finally:
                             conn.close()
                 else:
-                    st.warning("Please enter at least the Serial Number and Assembler's Name.")
+                    st.warning("⚠️ Please fill out at least the Battery Serial Number and Client Name to submit.")
                     
-    # Sub-Tab 2: The View Directory
+    # View Directory Tab
     with tab2:
-        st.subheader("Live Production History")
+        st.subheader("Live Battery Production History")
         conn = get_db_connection()
         if conn:
             try:
@@ -165,7 +253,7 @@ elif choice == "🔋 Battery Production":
                 if not df_battery.empty:
                     st.dataframe(df_battery, use_container_width=True)
                 else:
-                    st.info("No battery logs found in the database yet.")
+                    st.info("No battery logs found. Submit your first QC report to see data here!")
             except Exception as e:
                 st.error(f"Error fetching battery logs: {e}")
             finally:
