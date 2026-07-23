@@ -5,6 +5,20 @@ import datetime
 
 # Page configuration
 st.set_page_config(page_title="Jemag Portal", page_icon="⚡", layout="wide")
+# Custom CSS to increase the size of the sidebar navigation text
+st.markdown("""
+    <style>
+    /* Increases the font size of the radio button options */
+    [data-testid="stSidebar"] .stRadio p {
+        font-size: 22px !important;
+    }
+    /* Increases the font size of the "Go to" label */
+    [data-testid="stSidebar"] .stRadio label {
+        font-size: 24px !important;
+        font-weight: bold !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # Database connection function
 def get_db_connection():
