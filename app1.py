@@ -138,35 +138,68 @@ elif choice == "Log Student Evaluation":
 # --- TAB 3: REGISTER NEW PROFILE (ADMIN ONLY) ---
 elif choice == "Register New Profile":
     st.header("👤 Add New Staff or Student Profile")
+    
+    # 1. Base Information
     col1, col2 = st.columns(2)
     with col1:
-        first_name = st.text_input("First Name")
-        last_name = st.text_input("Last Name")
-        email = st.text_input("Email Address")
+        first_name = st.text_input("First Name *")
+        last_name = st.text_input("Last Name *")
+        email = st.text_input("Email Address *")
     with col2:
         regular_phone = st.text_input("Regular Phone Number")
         whatsapp_phone = st.text_input("WhatsApp Number")
-        role_type = st.selectbox("Role Type", ["Staff", "IT Student"])
-        
-    if st.button("Save Profile"):
+        role_type = st.selectbox("Role Type *", ["Staff", "IT Student"])
+
+    st.divider()
+
+    # 2. Dynamic Inputs based on selected Role
+    if role_type == "Staff":
+        st.subheader("💼 Staff Information")
+        staff_role = st.text_input("Staff Role / Job Title", placeholder="e.g., Senior Technician, QC Lead, Administrator")
+        school, focus_area, supervisor = None, None, None
+    else:
+        st.subheader("🎓 IT Student Information")
+        col3, col4 = st.columns(2)
+        with col3:
+            school = st.text_input("School / Institution", placeholder="e.g., UNIJOS, PLAPOLY")
+            focus_area = st.text_input("Focus Area / Department", placeholder="e.g., Electrical Installation, Software Tech")
+        with col4:
+            supervisor = st.text_input("Assigned Supervisor", placeholder="e.g., Engr. Joshua")
+        staff_role = None
+
+    st.divider()
+
+    # 3. Save Button Logic
+    if st.button("💾 Save Profile"):
         if first_name and last_name and email:
             conn = get_db_connection()
             if conn:
                 try:
                     cursor = conn.cursor()
-                    query = """INSERT INTO People (FirstName, LastName, Email, RegularPhone, WhatsappPhone, RoleType) 
-                               VALUES (%s, %s, %s, %s, %s, %s)"""
-                    cursor.execute(query, (first_name, last_name, email, regular_phone, whatsapp_phone, role_type))
+                    
+                    # Insert into primary People table
+                    query_people = """INSERT INTO People (FirstName, LastName, Email, RegularPhone, WhatsappPhone, RoleType) 
+                                       VALUES (%s, %s, %s, %s, %s, %s)"""
+                    cursor.execute(query_people, (first_name, last_name, email, regular_phone, whatsapp_phone, role_type))
+                    person_id = cursor.lastrowid
+
+                    # Insert role-specific data into child tables
+                    if role_type == "Staff":
+                        query_staff = "INSERT INTO Staff (PersonID, Role) VALUES (%s, %s)"
+                        cursor.execute(query_staff, (person_id, staff_role))
+                    elif role_type == "IT Student":
+                        query_student = "INSERT INTO ITStudents (PersonID, School, FocusArea, AssignedSupervisor) VALUES (%s, %s, %s, %s)"
+                        cursor.execute(query_student, (person_id, school, focus_area, supervisor))
+
                     conn.commit()
-                    new_id = cursor.lastrowid
                     cursor.close()
-                    st.success(f"Profile created successfully! Assigned System ID: {new_id}")
+                    st.success(f"✅ Profile created successfully for {first_name} {last_name}! (ID: {person_id})")
                 except Exception as e:
-                    st.error(f"Error saving profile: {e}")
+                    st.error(f"❌ Error saving profile: {e}")
                 finally:
                     conn.close()
         else:
-            st.warning("Please fill out all required fields (First Name, Last Name, and Email).")
+            st.warning("⚠️ Please fill out all required fields marked with * (First Name, Last Name, Email).")
 
 # --- TAB 4: BATTERY PRODUCTION LOGS (EVERYONE) ---
 elif choice == "🔋 Battery Production":
