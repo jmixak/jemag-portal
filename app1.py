@@ -3,9 +3,10 @@ import mysql.connector
 import pandas as pd
 import datetime
 
-# Page configuration
+# 1. Page configuration (Must be the very first Streamlit command)
 st.set_page_config(page_title="Jemag Portal", page_icon="⚡", layout="wide")
-# Custom CSS to increase the size of the sidebar navigation text
+
+# 2. Custom CSS for larger text AND vertical spacing
 st.markdown("""
     <style>
     /* Increases the font size of the radio button options */
@@ -17,8 +18,45 @@ st.markdown("""
         font-size: 24px !important;
         font-weight: bold !important;
     }
+    /* Adds vertical space between the options */
+    [data-testid="stSidebar"] .stRadio > div {
+        gap: 20px !important; 
+    }
     </style>
 """, unsafe_allow_html=True)
+
+# 3. Initialize Session State for Login Authentication
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.role = None
+
+# 4. The Login Screen (Blocks access to the rest of the app)
+if not st.session_state.logged_in:
+    st.title("🔒 Jemag Renewable Energy - Staff Portal")
+    st.write("Please enter your assigned passkey to access the system.")
+    
+    # Input field that hides the text as dots
+    passkey = st.text_input("Enter Passkey", type="password")
+    
+    if st.button("Login"):
+        # 👉 IMPORTANT: Change these passwords to whatever you want!
+        if passkey == "5464": 
+            st.session_state.logged_in = True
+            st.session_state.role = "admin"
+            st.rerun()  # Refreshes the page to log them in
+        elif passkey == "1234": 
+            st.session_state.logged_in = True
+            st.session_state.role = "staff"
+            st.rerun()
+        else:
+            st.error("❌ Invalid passkey. Please try again.")
+            
+    # Stop the code here so the rest of the app doesn't load without a login
+    st.stop()
+
+# ---------------------------------------------------------
+# EVERYTHING BELOW THIS LINE ONLY RUNS IF LOGGED IN
+# ---------------------------------------------------------
 
 # Database connection function
 def get_db_connection():
@@ -37,16 +75,28 @@ def get_db_connection():
 # App Title
 st.title("⚡ Jemag Renewable Energy - Management Portal")
 
-# Sidebar navigation
+# Sidebar navigation logic based on Role
 st.sidebar.title("Navigation Menu")
-choice = st.sidebar.radio(
-    "Go to", 
-    ["View Master Directory", "Log Student Evaluation", "Register New Profile", "🔋 Battery Production"]
-)
+
+if st.session_state.role == "admin":
+    # Admin sees everything
+    menu_options = ["View Master Directory", "Log Student Evaluation", "Register New Profile", "🔋 Battery Production"]
+else:
+    # Staff ONLY sees the battery production option
+    menu_options = ["🔋 Battery Production"]
+
+choice = st.sidebar.radio("Go to", menu_options)
+
+# Add a clean Logout button at the bottom of the sidebar
+st.sidebar.divider()
+if st.sidebar.button("🚪 Log Out"):
+    st.session_state.logged_in = False
+    st.session_state.role = None
+    st.rerun()
 
 st.divider()
 
-# --- TAB 1: VIEW MASTER DIRECTORY ---
+# --- TAB 1: VIEW MASTER DIRECTORY (ADMIN ONLY) ---
 if choice == "View Master Directory":
     st.header("📋 Staff & IT Student Directory")
     conn = get_db_connection()
@@ -63,7 +113,7 @@ if choice == "View Master Directory":
         finally:
             conn.close()
 
-# --- TAB 2: LOG STUDENT EVALUATION ---
+# --- TAB 2: LOG STUDENT EVALUATION (ADMIN ONLY) ---
 elif choice == "Log Student Evaluation":
     st.header("📝 Submit Trainee Evaluation")
     student_id = st.number_input("Enter Student ID", min_value=1, step=1)
@@ -85,7 +135,7 @@ elif choice == "Log Student Evaluation":
             finally:
                 conn.close()
 
-# --- TAB 3: REGISTER NEW PROFILE ---
+# --- TAB 3: REGISTER NEW PROFILE (ADMIN ONLY) ---
 elif choice == "Register New Profile":
     st.header("👤 Add New Staff or Student Profile")
     col1, col2 = st.columns(2)
@@ -118,7 +168,7 @@ elif choice == "Register New Profile":
         else:
             st.warning("Please fill out all required fields (First Name, Last Name, and Email).")
 
-# --- TAB 4: BATTERY PRODUCTION LOGS ---
+# --- TAB 4: BATTERY PRODUCTION LOGS (EVERYONE) ---
 elif choice == "🔋 Battery Production":
     st.header("🔋 Comprehensive Battery QC & Production Log")
     
