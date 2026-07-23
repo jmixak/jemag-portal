@@ -306,16 +306,46 @@ elif choice == "🔋 Battery Production":
                 else:
                     st.warning("⚠️ Please fill out at least the Battery Serial Number and Client Name to submit.")
                     
-    # View Directory Tab
+   # View Directory Tab (Upgraded Dashboard)
     with tab2:
-        st.subheader("Live Battery Production History")
+        st.subheader("📊 Live Battery Production Dashboard")
         conn = get_db_connection()
         if conn:
             try:
                 query = "SELECT * FROM BatteryLogs ORDER BY LogDate DESC"
                 df_battery = pd.read_sql(query, conn)
+                
                 if not df_battery.empty:
-                    st.dataframe(df_battery, use_container_width=True)
+                    # --- KPI METRIC CARDS ---
+                    total_logged = len(df_battery)
+                    total_passed = len(df_battery[df_battery['QCApproval'] == 'Pass'])
+                    total_failed = len(df_battery[df_battery['QCApproval'] == 'Fail'])
+                    pass_rate = round((total_passed / total_logged) * 100, 1) if total_logged > 0 else 0
+
+                    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+                    col_m1.metric("Total Assembled", f"{total_logged} Units")
+                    col_m2.metric("Passed QC", f"✅ {total_passed}")
+                    col_m3.metric("Failed/Pending", f"⚠️ {total_failed}")
+                    col_m4.metric("Pass Rate", f"{pass_rate}%")
+                    
+                    st.divider()
+                    
+                    # --- COLOR-CODED TABLE ---
+                    st.write("**Recent Production Logs**")
+                    
+                    # Function to color code the QC Approval column
+                    def highlight_qc(val):
+                        if val == 'Pass':
+                            return 'background-color: rgba(0, 200, 83, 0.2); color: #00C853; font-weight: bold'
+                        elif val == 'Fail':
+                            return 'background-color: rgba(255, 61, 0, 0.2); color: #FF3D00; font-weight: bold'
+                        return ''
+                    
+                    # Apply the styling
+                    styled_df = df_battery.style.map(highlight_qc, subset=['QCApproval'])
+                    
+                    # Display the styled dataframe
+                    st.dataframe(styled_df, use_container_width=True)
                 else:
                     st.info("No battery logs found. Submit your first QC report to see data here!")
             except Exception as e:
