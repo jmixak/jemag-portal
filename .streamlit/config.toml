@@ -1,0 +1,8 @@
+[theme]
+# A vibrant, electric "Renewable Energy" Green for buttons and accents
+primaryColor = "#00C853" 
+
+# Use a clean, modern font
+font = "sans serif"
+
+# We will let the background color adapt automatically to the user's device (Light/Dark mode)
