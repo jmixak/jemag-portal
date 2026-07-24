@@ -393,3 +393,94 @@ elif choice == "🔋 Battery Production":
                 st.error(f"Error fetching battery logs: {e}")
             finally:
                 conn.close()
+                # --- TAB 5: ANALYTICS & INSIGHTS (ADMIN ONLY) ---
+elif choice == "📈 Analytics & Insights":
+    st.header("📈 Production Analytics & Quality Insights")
+    
+    conn = get_db_connection()
+    if conn:
+        try:
+            query = "SELECT * FROM BatteryLogs"
+            df = pd.read_sql(query, conn)
+            
+            if not df.empty:
+                # Ensure date column is datetime format
+                df['ProductionDate'] = pd.to_datetime(df['ProductionDate'])
+                df['Year'] = df['ProductionDate'].dt.year
+                df['YearMonth'] = df['ProductionDate'].dt.strftime('%Y-%m')
+
+                # --- TOP LEVEL SUMMARY METRICS ---
+                col1, col2, col3, col4 = st.columns(4)
+                col1.metric("Total Batteries Logged", len(df))
+                col2.metric("Unique Clients", df['ClientName'].nunique())
+                col3.metric("Most Used Chemistry", df['CellChemistry'].mode()[0] if not df['CellChemistry'].empty else "N/A")
+                col4.metric("Top Destination", df['BatteryFinalLocation'].mode()[0] if not df['BatteryFinalLocation'].empty else "N/A")
+
+                st.divider()
+
+                # --- ROW 1: CHARTS ---
+                c1, c2 = st.columns(2)
+
+                with c1:
+                    st.subheader("🔋 Cell Chemistry Breakdown")
+                    chem_counts = df['CellChemistry'].value_counts().reset_index()
+                    chem_counts.columns = ['Chemistry', 'Count']
+                    fig_pie = px.pie(
+                        chem_counts, 
+                        names='Chemistry', 
+                        values='Count', 
+                        hole=0.4,
+                        color_discrete_sequence=px.colors.qualitative.Set2
+                    )
+                    st.plotly_chart(fig_pie, use_container_width=True)
+
+                with c2:
+                    st.subheader("📅 Monthly Production Volumes")
+                    monthly_counts = df.groupby('YearMonth').size().reset_index(name='Units Produced')
+                    fig_bar = px.bar(
+                        monthly_counts, 
+                        x='YearMonth', 
+                        y='Units Produced',
+                        text='Units Produced',
+                        color_discrete_sequence=['#00C853']
+                    )
+                    fig_bar.update_layout(xaxis_title="Month", yaxis_title="Number of Packs")
+                    st.plotly_chart(fig_bar, use_container_width=True)
+
+                st.divider()
+
+                # --- ROW 2: CHARTS ---
+                c3, c4 = st.columns(2)
+
+                with c3:
+                    st.subheader("📍 Battery Destinations / Locations")
+                    loc_counts = df['BatteryFinalLocation'].value_counts().reset_index()
+                    loc_counts.columns = ['Location', 'Count']
+                    fig_loc = px.bar(
+                        loc_counts, 
+                        x='Location', 
+                        y='Count',
+                        color='Count',
+                        color_continuous_scale='Greens'
+                    )
+                    st.plotly_chart(fig_loc, use_container_width=True)
+
+                with c4:
+                    st.subheader("🛡️ QC Pass/Fail Rate by BMS Brand")
+                    qc_bms = df.groupby(['BMSBrand', 'QCApproval']).size().reset_index(name='Count')
+                    fig_qc = px.bar(
+                        qc_bms, 
+                        x='BMSBrand', 
+                        y='Count', 
+                        color='QCApproval',
+                        barmode='group',
+                        color_discrete_map={'Pass': '#00C853', 'Fail': '#FF3D00'}
+                    )
+                    st.plotly_chart(fig_qc, use_container_width=True)
+
+            else:
+                st.info("No production data available yet to generate analytics.")
+        except Exception as e:
+            st.error(f"Error loading analytics data: {e}")
+        finally:
+            conn.close()
