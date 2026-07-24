@@ -81,12 +81,18 @@ st.title("⚡ Jemag Renewable Energy - Management Portal")
 st.sidebar.title("Navigation Menu")
 
 if st.session_state.role == "admin":
-    # Admin sees everything
-    menu_options = ["View Master Directory", "Log Student Evaluation", "Register New Profile", "🔋 Battery Production"]
+    # Admin sees everything including Analytics
+    menu_options = [
+        "View Master Directory", 
+        "Log Student Evaluation", 
+        "Register New Profile", 
+        "🔋 Battery Production",
+        "📈 Analytics & Insights"  # <--- NEW TAB
+    ]
 else:
     # Staff ONLY sees the battery production option
     menu_options = ["🔋 Battery Production"]
-
+    
 choice = st.sidebar.radio("Go to", menu_options)
 
 # Add a clean Logout button at the bottom of the sidebar
