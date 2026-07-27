@@ -6,7 +6,7 @@ import pandas as pd
 import datetime
 
 # 1. Page configuration (Must be the very first Streamlit command)
-st.set_page_config(page_title="Jemag Portal", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="Jemag Portal", layout="wide")
 
 import base64
 import os
@@ -133,8 +133,13 @@ def get_db_connection():
         return None
 
 # App Title
-st.title("⚡ Jemag Renewable Energy - Management Portal")
+st.title("Jemag Renewable Energy - Management Portal")
+# App Title & Logo
+logo_path = get_sidebar_logo_path("logo")
+if logo_path:
+    st.image(logo_path, width=220)
 
+st.title("Jemag Renewable Energy - Management Portal")
 # Sidebar navigation logic based on Role
 st.sidebar.title("Navigation Menu")
 
