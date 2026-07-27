@@ -131,12 +131,20 @@ def get_db_connection():
     except Exception as e:
         st.error(f"❌ Could not connect to database: {e}")
         return None
-
-# App Title & Logo
+# --- MAIN HEADER & LOGO (Side-by-side) ---
 logo_path = get_sidebar_logo_path("logo")
-if logo_path:
-    st.image(logo_path, width=220)
 
+# Create two columns (1 part for logo, 5 parts for title) vertically centered
+col_logo, col_title = st.columns([1, 5], vertical_alignment="center")
+
+with col_logo:
+    if logo_path:
+        st.image(logo_path, width=130)  # Sized down slightly so it fits neatly beside text
+
+with col_title:
+    st.title("Jemag Renewable Energy - Management Portal")
+
+st.divider()
 st.title("Jemag Renewable Energy - Management Portal")
 
 # Sidebar navigation logic based on Role
