@@ -7,21 +7,7 @@ import datetime
 
 # 1. Page configuration (Must be the very first Streamlit command)
 st.set_page_config(page_title="Jemag Portal", page_icon="⚡", layout="wide")
-# --- MAIN HEADER & LOGO (Appears on ALL pages) ---
-logo_path = get_sidebar_logo_path("logo")
 
-# 1. Display Logo on the main screen above the header
-if logo_path:
-    st.image(logo_path, width=220)  # Adjust width (e.g., 200, 250, 300) to fit your preference
-
-# 2. Main Title & Divider
-st.title("⚡ Jemag Renewable Energy - Management Portal")
-st.divider()
-
-# --- SIDEBAR NAVIGATION LOGO (Optional: keep if you want it in both places) ---
-if logo_path:
-    st.sidebar.image(logo_path, use_container_width=True)
-st.sidebar.title("Navigation Menu")
 import base64
 import os
 
