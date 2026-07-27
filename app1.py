@@ -132,12 +132,12 @@ def get_db_connection():
         st.error(f"❌ Could not connect to database: {e}")
         return None
 
-# App Title
-st.title("Jemag Renewable Energy - Management Portal")
 # App Title & Logo
 logo_path = get_sidebar_logo_path("logo")
 if logo_path:
     st.image(logo_path, width=220)
+
+st.title("Jemag Renewable Energy - Management Portal")
 
 st.title("Jemag Renewable Energy - Management Portal")
 # Sidebar navigation logic based on Role
