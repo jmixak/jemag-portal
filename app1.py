@@ -144,9 +144,6 @@ with col_logo:
 with col_title:
     st.title("Jemag Renewable Energy - Management Portal")
 
-st.divider()
-st.title("Jemag Renewable Energy - Management Portal")
-
 # Sidebar navigation logic based on Role
 st.sidebar.title("Navigation Menu")
 
