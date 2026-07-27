@@ -1,8 +1,14 @@
 [theme]
-# A vibrant, electric "Renewable Energy" Green for buttons and accents
-primaryColor = "#00C853" 
+# Deep Royal/Navy Blue for buttons, active tabs, and highlights
+primaryColor = "#0F4C81" 
 
-# Use a clean, modern font
+# Pure White main background
+backgroundColor = "#FFFFFF" 
+
+# Soft Metallic Silver for the sidebar, cards, and input boxes
+secondaryBackgroundColor = "#E2E8F0" 
+
+# Deep Black / Dark Slate for high-contrast, crisp text
+textColor = "#0F172A" 
+
 font = "sans serif"
-
-# We will let the background color adapt automatically to the user's device (Light/Dark mode)
