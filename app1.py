@@ -461,94 +461,139 @@ elif choice == "🔋 Battery Production":
                 st.error(f"Error fetching battery logs: {e}")
             finally:
                 conn.close()
+                
                 # --- TAB 5: ANALYTICS & INSIGHTS (ADMIN ONLY) ---
+
 elif choice == "📈 Analytics & Insights":
-    st.header("📈 Production Analytics & Quality Insights")
-    
+    st.subheader("📈 Battery Production Analytics & Operational Insights")
+    st.markdown("Real-time manufacturing trends and inventory metrics derived from your database.")
+
+    # 1. Fetch All Battery Data from MySQL
     conn = get_db_connection()
     if conn:
         try:
-            query = "SELECT * FROM BatteryLogs"
-            df = pd.read_sql(query, conn)
-            
-            if not df.empty:
-                # Ensure date column is datetime format
-                df['ProductionDate'] = pd.to_datetime(df['ProductionDate'])
-                df['Year'] = df['ProductionDate'].dt.year
-                df['YearMonth'] = df['ProductionDate'].dt.strftime('%Y-%m')
-
-                # --- TOP LEVEL SUMMARY METRICS ---
-                col1, col2, col3, col4 = st.columns(4)
-                col1.metric("Total Batteries Logged", len(df))
-                col2.metric("Unique Clients", df['ClientName'].nunique())
-                col3.metric("Most Used Chemistry", df['CellChemistry'].mode()[0] if not df['CellChemistry'].empty else "N/A")
-                col4.metric("Top Destination", df['BatteryFinalLocation'].mode()[0] if not df['BatteryFinalLocation'].empty else "N/A")
-
-                st.divider()
-
-                # --- ROW 1: CHARTS ---
-                c1, c2 = st.columns(2)
-
-                with c1:
-                    st.subheader("🔋 Cell Chemistry Breakdown")
-                    chem_counts = df['CellChemistry'].value_counts().reset_index()
-                    chem_counts.columns = ['Chemistry', 'Count']
-                    fig_pie = px.pie(
-                        chem_counts, 
-                        names='Chemistry', 
-                        values='Count', 
-                        hole=0.4,
-                        color_discrete_sequence=px.colors.qualitative.Set2
-                    )
-                    st.plotly_chart(fig_pie, use_container_width=True)
-
-                with c2:
-                    st.subheader("📅 Monthly Production Volumes")
-                    monthly_counts = df.groupby('YearMonth').size().reset_index(name='Units Produced')
-                    fig_bar = px.bar(
-                        monthly_counts, 
-                        x='YearMonth', 
-                        y='Units Produced',
-                        text='Units Produced',
-                        color_discrete_sequence=['#00C853']
-                    )
-                    fig_bar.update_layout(xaxis_title="Month", yaxis_title="Number of Packs")
-                    st.plotly_chart(fig_bar, use_container_width=True)
-
-                st.divider()
-
-                # --- ROW 2: CHARTS ---
-                c3, c4 = st.columns(2)
-
-                with c3:
-                    st.subheader("📍 Battery Destinations / Locations")
-                    loc_counts = df['BatteryFinalLocation'].value_counts().reset_index()
-                    loc_counts.columns = ['Location', 'Count']
-                    fig_loc = px.bar(
-                        loc_counts, 
-                        x='Location', 
-                        y='Count',
-                        color='Count',
-                        color_continuous_scale='Greens'
-                    )
-                    st.plotly_chart(fig_loc, use_container_width=True)
-
-                with c4:
-                    st.subheader("🛡️ QC Pass/Fail Rate by BMS Brand")
-                    qc_bms = df.groupby(['BMSBrand', 'QCApproval']).size().reset_index(name='Count')
-                    fig_qc = px.bar(
-                        qc_bms, 
-                        x='BMSBrand', 
-                        y='Count', 
-                        color='QCApproval',
-                        barmode='group',
-                        color_discrete_map={'Pass': '#00C853', 'Fail': '#FF3D00'}
-                    )
-                    st.plotly_chart(fig_qc, use_container_width=True)
-
-            else:
-                st.info("No production data available yet to generate analytics.")
-        except Exception as e:
-            st.error(f"Error loading analytics data: {e}")
-        finally:
+            df = pd.read_sql("SELECT * FROM BatteryLogs", conn)
             conn.close()
+        except Exception as e:
+            st.error(f"Error fetching analytics data: {e}")
+            df = pd.DataFrame()
+    else:
+        df = pd.DataFrame()
+
+    if df.empty:
+        st.info("No battery logs found in the database to generate analytics.")
+    else:
+        # Data Preprocessing
+        df['ProductionDate'] = pd.to_datetime(df['ProductionDate'], errors='coerce')
+        df['CellCapacityAh'] = pd.to_numeric(df['CellCapacityAh'], errors='coerce').fillna(120)
+
+        # Approximate Energy (kWh) calculation assuming 51.2V nominal for 16S LiFePO4 packs
+        df['Estimated_kWh'] = (df['CellCapacityAh'] * 51.2) / 1000
+
+        # --- KPI SUMMARY CARDS ---
+        kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+        
+        with kpi1:
+            st.metric(label="🔋 Total Packs Built", value=f"{len(df)} Units")
+        with kpi2:
+            total_kwh = df['Estimated_kWh'].sum()
+            st.metric(label="⚡ Total Storage Deployed", value=f"{total_kwh:.1f} kWh")
+        with kpi3:
+            top_bms = df['BMSBrand'].mode()[0] if not df['BMSBrand'].dropna().empty else "N/A"
+            st.metric(label="⚙️ Primary BMS Brand", value=f"{top_bms}")
+        with kpi4:
+            most_common_cap = int(df['CellCapacityAh'].mode()[0]) if not df['CellCapacityAh'].dropna().empty else 120
+            st.metric(label="📦 Main Pack Size", value=f"{most_common_cap} Ah")
+
+        st.divider()
+
+        # --- ROW 1: PRODUCTION TRENDS & CHEMISTRY ---
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("### 📅 Monthly Production Volume")
+            df['YearMonth'] = df['ProductionDate'].dt.to_period('M').astype(str)
+            monthly_counts = df.groupby('YearMonth').size().reset_index(name='Packs Produced')
+            
+            fig_monthly = px.bar(
+                monthly_counts, 
+                x='YearMonth', 
+                y='Packs Produced',
+                text='Packs Produced',
+                labels={'YearMonth': 'Month', 'Packs Produced': 'Packs Built'},
+                color_discrete_sequence=['#0F4C81'] # Royal Blue theme
+            )
+            fig_monthly.update_traces(textposition='outside')
+            fig_monthly.update_layout(xaxis_title="Month", yaxis_title="Units Built", height=350)
+            st.plotly_chart(fig_monthly, use_container_width=True)
+
+        with col2:
+            st.markdown("### 🧪 Cell Chemistry Share")
+            chem_counts = df['CellChemistry'].value_counts().reset_index()
+            chem_counts.columns = ['Chemistry', 'Count']
+            
+            fig_chem = px.pie(
+                chem_counts, 
+                names='Chemistry', 
+                values='Count', 
+                hole=0.4,
+                color_discrete_sequence=['#0F4C81', '#00C853', '#E2E8F0', '#0F172A']
+            )
+            fig_chem.update_layout(height=350)
+            st.plotly_chart(fig_chem, use_container_width=True)
+
+        st.divider()
+
+        # --- ROW 2: BMS BRANDS & CAPACITY CLASSES ---
+        col3, col4 = st.columns(2)
+
+        with col3:
+            st.markdown("### ⚙️ BMS Brand Distribution")
+            bms_counts = df['BMSBrand'].value_counts().reset_index()
+            bms_counts.columns = ['BMS Brand', 'Units Installed']
+
+            fig_bms = px.bar(
+                bms_counts, 
+                x='BMS Brand', 
+                y='Units Installed',
+                color='BMS Brand',
+                text='Units Installed',
+                color_discrete_sequence=px.colors.qualitative.Set2
+            )
+            fig_bms.update_traces(textposition='outside')
+            fig_bms.update_layout(height=350, showlegend=False)
+            st.plotly_chart(fig_bms, use_container_width=True)
+
+        with col4:
+            st.markdown("### 🔋 Capacity Distribution (Ah)")
+            cap_counts = df['CellCapacityAh'].astype(str) + " Ah"
+            cap_df = cap_counts.value_counts().reset_index()
+            cap_df.columns = ['Capacity Class', 'Count']
+
+            fig_cap = px.pie(
+                cap_df, 
+                names='Capacity Class', 
+                values='Count',
+                color_discrete_sequence=['#00C853', '#0F4C81', '#64748B']
+            )
+            fig_cap.update_layout(height=350)
+            st.plotly_chart(fig_cap, use_container_width=True)
+
+        st.divider()
+
+        # --- ROW 3: CLIENT DISTRIBUTION ---
+        st.markdown("### 👥 Top Clients & Order Volume")
+        client_counts = df['ClientName'].value_counts().head(10).reset_index()
+        client_counts.columns = ['Client Name', 'Packs Delivered']
+
+        fig_client = px.bar(
+            client_counts, 
+            x='Packs Delivered', 
+            y='Client Name',
+            orientation='h',
+            text='Packs Delivered',
+            color_discrete_sequence=['#0F4C81']
+        )
+        fig_client.update_traces(textposition='outside')
+        fig_client.update_layout(yaxis=dict(autorange="reversed"), height=300)
+        st.plotly_chart(fig_client, use_container_width=True)
