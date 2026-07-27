@@ -7,6 +7,63 @@ import datetime
 
 # 1. Page configuration (Must be the very first Streamlit command)
 st.set_page_config(page_title="Jemag Portal", page_icon="⚡", layout="wide")
+import base64
+import os
+
+# --- 1. DYNAMIC BACKGROUND IMAGE (BLURRED) ---
+def set_blurred_background(image_base_name):
+    # Finds the image whether Windows hid .png or .jpg
+    image_path = None
+    for ext in ["", ".jpg", ".png", ".jpeg", ".JPG", ".PNG"]:
+        test_path = image_base_name + ext
+        if os.path.exists(test_path):
+            image_path = test_path
+            break
+            
+    if image_path:
+        with open(image_path, "rb") as f:
+            encoded_string = base64.b64encode(f.read()).decode()
+            
+        ext = os.path.splitext(image_path)[1].lower()
+        mime_type = "image/png" if ext == ".png" else "image/jpeg"
+
+        css_code = f"""
+        <style>
+        .stApp::before {{
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url("data:{mime_type};base64,{encoded_string}");
+            background-size: cover;      /* Covers the whole screen */
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: blur(10px);          /* Glass blur effect */
+            opacity: 0.12;               /* Keeps it subtle and sharp for text reading */
+            z-index: 0;
+            pointer-events: none;
+        }}
+        </style>
+        """
+        st.markdown(css_code, unsafe_allow_html=True)
+
+# Apply the background blur graphic
+set_blurred_background("jemag logo back")
+
+
+# --- 2. SIDEBAR LOGO DISPLAY ---
+def get_sidebar_logo_path(image_base_name):
+    for ext in ["", ".png", ".jpg", ".jpeg", ".PNG", ".JPG"]:
+        test_path = image_base_name + ext
+        if os.path.exists(test_path):
+            return test_path
+    return None
+
+logo_path = get_sidebar_logo_path("logo")
+if logo_path:
+    st.sidebar.image(logo_path, use_container_width=True)
 
 # 2. Custom CSS for larger text AND vertical spacing
 st.markdown("""
