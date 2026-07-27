@@ -139,7 +139,6 @@ if logo_path:
 
 st.title("Jemag Renewable Energy - Management Portal")
 
-st.title("Jemag Renewable Energy - Management Portal")
 # Sidebar navigation logic based on Role
 st.sidebar.title("Navigation Menu")
 
