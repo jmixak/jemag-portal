@@ -63,8 +63,9 @@ def get_sidebar_logo_path(image_base_name):
     return None
 
 logo_path = get_sidebar_logo_path("logo")
+# --- AFTER ---
 if logo_path:
-    st.sidebar.image(logo_path, use_container_width=True)
+    st.sidebar.image(logo_path, width=120)
 
 # 2. Custom CSS for larger text AND vertical spacing
 st.markdown("""
