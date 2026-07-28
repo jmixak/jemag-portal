@@ -173,7 +173,7 @@ if st.sidebar.button("🚪 Log Out"):
 st.divider()
 
 # --- TAB 1: VIEW MASTER DIRECTORY (ADMIN ONLY) ---
-if choice == "View Master Directory":
+if choice == "🏢 View Master Directory":
     st.header("📋 Staff & IT Student Directory")
     conn = get_db_connection()
     if conn:
@@ -190,7 +190,7 @@ if choice == "View Master Directory":
             conn.close()
 
 # --- TAB 2: LOG STUDENT EVALUATION (ADMIN ONLY) ---
-elif choice == "Log Student Evaluation":
+elif choice == "👨‍🎓 Student Evaluation":
     st.header("📝 Submit Trainee Evaluation")
     student_id = st.number_input("Enter Student ID", min_value=1, step=1)
     eval_type = st.selectbox("Evaluation Type", ["Mid-Term Review", "Final Defense", "Logbook Check"])
@@ -212,7 +212,7 @@ elif choice == "Log Student Evaluation":
                 conn.close()
 
 # --- TAB 3: REGISTER NEW PROFILE (ADMIN ONLY) ---
-elif choice == "Register New Profile":
+elif choice == "📝 Register New Profile":
     st.header("👤 Add New Staff or Student Profile")
     
     # 1. Base Information
