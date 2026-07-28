@@ -154,7 +154,7 @@ if st.session_state.role == "admin":
         "🏢 View Master Directory",  
         "🔋 Battery Production",
         "📈 Analytics & Insights",
-        "👨‍🎓 Log Student Evaluation",
+        "👨‍🎓 Student Evaluation",
         "📝 Register New Profile"   # <--- NEW TAB
     ]
 else:
