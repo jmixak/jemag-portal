@@ -141,10 +141,12 @@ col_logo, col_title = st.columns([1, 5], vertical_alignment="center")
 with col_logo:
     if logo_path:
         st.image(logo_path, width=130)  # Sized down slightly so it fits neatly beside text
-
-with col_title:
-    st.title("Jemag Renewable Energy - Management Portal")
-
+if st.session_state.role == "admin":
+    with col_title:
+        st.title("Jemag Renewable Energy - Management Portal")
+else:
+    with col_title:
+      st.title("Jemag Renewable Energy - Production Portal")  
 # Sidebar navigation logic based on Role
 st.sidebar.title("Navigation Menu")
 
