@@ -153,9 +153,9 @@ if st.session_state.role == "admin":
     menu_options = [
         "View Master Directory", 
         "Log Student Evaluation", 
-        "Register New Profile", 
         "🔋 Battery Production",
-        "📈 Analytics & Insights"  # <--- NEW TAB
+        "📈 Analytics & Insights",
+        "Register New Profile"   # <--- NEW TAB
     ]
 else:
     # Staff ONLY sees the battery production option
