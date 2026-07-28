@@ -151,11 +151,11 @@ st.sidebar.title("Navigation Menu")
 if st.session_state.role == "admin":
     # Admin sees everything including Analytics
     menu_options = [
-        "View Master Directory", 
-        "Log Student Evaluation", 
+        "🏢 View Master Directory",  
         "🔋 Battery Production",
         "📈 Analytics & Insights",
-        "Register New Profile"   # <--- NEW TAB
+        "👨‍🎓 Log Student Evaluation",
+        "📝 Register New Profile"   # <--- NEW TAB
     ]
 else:
     # Staff ONLY sees the battery production option
