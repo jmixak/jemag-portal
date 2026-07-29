@@ -329,6 +329,7 @@ elif choice == "📍 Field Service & Map":
 
                 # --- HD SATELLITE MAP WITH 3D TILT ---
                 # --- GOOGLE HYBRID SATELLITE MAP (UPDATED IMAGERY + LABELS) ---
+                # --- GOOGLE HYBRID SATELLITE WITH LOCATION PINS ---
                 fig_map = px.scatter_mapbox(
                     map_data,
                     lat="Latitude",
@@ -346,8 +347,16 @@ elif choice == "📍 Field Service & Map":
                     color="CurrentStatus",
                     color_discrete_map=color_map,
                     zoom=5.8,
-                    center={"lat": 9.0820, "lon": 8.6753}, # Centered on Nigeria
-                    size_max=18
+                    center={"lat": 9.0820, "lon": 8.6753}
+                )
+
+                # Make pins large and set pin shape
+                fig_map.update_traces(
+                    marker=dict(
+                        size=28,            # 📍 Controls pin size (increased from default)
+                        symbol="marker",     # 📍 Location drop-pin shape
+                        opacity=1.0
+                    )
                 )
 
                 fig_map.update_layout(
@@ -357,12 +366,12 @@ elif choice == "📍 Field Service & Map":
                             "below": "traces",
                             "sourcetype": "raster",
                             "source": [
-                                "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"  # 🛰️ Google Hybrid Satellite Tiles
+                                "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
                             ]
                         }
                     ],
-                    mapbox_pitch=50,     # 📐 3D Tilt
-                    mapbox_bearing=15,   # 🧭 Camera Angle
+                    mapbox_pitch=50,
+                    mapbox_bearing=15,
                     margin={"r":0, "t":0, "l":0, "b":0},
                     height=550
                 )
