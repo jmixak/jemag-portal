@@ -1,15 +1,14 @@
+import base64
+import datetime
+import os
+import mysql.connector
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-import mysql.connector
-import pandas as pd
-import datetime
 
 # 1. Page configuration (Must be the very first Streamlit command)
 st.set_page_config(page_title="Jemag Portal", layout="wide")
-
-import base64
-import os
 
 # --- 1. DYNAMIC BACKGROUND IMAGE (BLURRED) ---
 def set_blurred_background(image_base_name):
@@ -63,11 +62,11 @@ def get_sidebar_logo_path(image_base_name):
     return None
 
 logo_path = get_sidebar_logo_path("logo")
-# --- AFTER ---
+
 if logo_path:
     st.sidebar.image(logo_path, width=120)
 
-# 2. Custom CSS for larger text AND vertical spacing
+# Custom CSS for larger text AND vertical spacing
 st.markdown("""
     <style>
     /* Increases the font size of the radio button options */
@@ -100,7 +99,6 @@ if not st.session_state.logged_in:
     passkey = st.text_input("Enter Passkey", type="password")
     
     if st.button("Login"):
-        # 👉 IMPORTANT: Change these passwords to whatever you want!
         if passkey == "5464": 
             st.session_state.logged_in = True
             st.session_state.role = "admin"
@@ -132,21 +130,23 @@ def get_db_connection():
     except Exception as e:
         st.error(f"❌ Could not connect to database: {e}")
         return None
+
 # --- MAIN HEADER & LOGO (Side-by-side) ---
 logo_path = get_sidebar_logo_path("logo")
 
-# Create two columns (1 part for logo, 5 parts for title) vertically centered
 col_logo, col_title = st.columns([1, 5], vertical_alignment="center")
 
 with col_logo:
     if logo_path:
-        st.image(logo_path, width=130)  # Sized down slightly so it fits neatly beside text
+        st.image(logo_path, width=130)
+
 if st.session_state.role == "admin":
     with col_title:
         st.title("Jemag Renewable Energy - Management Portal")
 else:
     with col_title:
-      st.title("Jemag Renewable Energy - Production Portal")  
+        st.title("Jemag Renewable Energy - Production Portal")  
+
 # Sidebar navigation logic based on Role
 st.sidebar.title("Navigation Menu")
 
@@ -154,11 +154,11 @@ if st.session_state.role == "admin":
     # Admin sees everything including Analytics
     menu_options = [
         "🏢 View Master Directory",  
-        "🔋 Battery Production",
-        "📈 Analytics & Insights",
         "👨‍🎓 Student Evaluation",
+        "📝 Register New Profile",
         "📍 Field Service & Map",
-        "📝 Register New Profile"   # <--- NEW TAB
+        "🔋 Battery Production",
+        "📈 Analytics & Insights"
     ]
 else:
     # Staff ONLY sees the battery production option
@@ -174,6 +174,10 @@ if st.sidebar.button("🚪 Log Out"):
     st.rerun()
 
 st.divider()
+
+# =============================================================================
+# MAIN PAGE ROUTING (IF / ELIF BRANCHES)
+# =============================================================================
 
 # --- TAB 1: VIEW MASTER DIRECTORY (ADMIN ONLY) ---
 if choice == "🏢 View Master Directory":
@@ -279,15 +283,17 @@ elif choice == "📝 Register New Profile":
                     conn.close()
         else:
             st.warning("⚠️ Please fill out all required fields marked with * (First Name, Last Name, Email).")
-        
-    elif choice == "📍 Field Service & Map":
-         st.subheader("📍 Field Service, Installations & Maintenance Hub")
-         st.markdown("Track solar/battery installations across Nigeria, drop interactive GPS pins, and record maintenance service tickets.")
-         tab_map, tab_new_install, tab_maintenance = st.tabs([
-             "🗺️ Live Site Map & Directory", 
-             "⚡ Register New Installation", 
-             "🔧 Record Maintenance Visit"
-         ])
+
+# --- TAB 4: FIELD SERVICE & MAP ---
+elif choice == "📍 Field Service & Map":
+    st.subheader("📍 Field Service, Installations & Maintenance Hub")
+    st.markdown("Track solar/battery installations across Nigeria, drop interactive GPS pins, and record maintenance service tickets.")
+    
+    tab_map, tab_new_install, tab_maintenance = st.tabs([
+        "🗺️ Live Site Map & Directory", 
+        "⚡ Register New Installation", 
+        "🔧 Record Maintenance Visit"
+    ])
 
     # -------------------------------------------------------------------------
     # TAB 1: LIVE MAP & SITE DIRECTORY
@@ -510,12 +516,12 @@ elif choice == "📝 Register New Profile":
                             except Exception as e:
                                 st.error(f"Error saving maintenance record: {e}")
 
-# --- TAB 4: BATTERY PRODUCTION LOGS (EVERYONE) ---
-    elif choice == "🔋 Battery Production":
-        st.header("🔋 Comprehensive Battery QC & Production Log")
-    
-        tab1, tab2 = st.tabs(["📝 Log New Battery", "📊 View Production History"])
-    
+# --- TAB 5: BATTERY PRODUCTION LOGS (EVERYONE) ---
+elif choice == "🔋 Battery Production":
+    st.header("🔋 Comprehensive Battery QC & Production Log")
+
+    tab1, tab2 = st.tabs(["📝 Log New Battery", "📊 View Production History"])
+
     with tab1:
         with st.form("battery_pro_form", clear_on_submit=True):
             
@@ -648,7 +654,7 @@ elif choice == "📝 Register New Profile":
                 else:
                     st.warning("⚠️ Please fill out at least the Battery Serial Number and Client Name to submit.")
                     
-   # View Directory Tab (Upgraded Dashboard)
+    # View Directory Tab (Upgraded Dashboard)
     with tab2:
         st.subheader("📊 Live Battery Production Dashboard")
         conn = get_db_connection()
@@ -694,9 +700,8 @@ elif choice == "📝 Register New Profile":
                 st.error(f"Error fetching battery logs: {e}")
             finally:
                 conn.close()
-                
-                # --- TAB 5: ANALYTICS & INSIGHTS (ADMIN ONLY) ---
 
+# --- TAB 6: ANALYTICS & INSIGHTS (ADMIN ONLY) ---
 elif choice == "📈 Analytics & Insights":
     st.subheader("📈 Battery Production Analytics & Operational Insights")
     st.markdown("Real-time manufacturing trends and inventory metrics derived from your database.")
