@@ -328,6 +328,7 @@ elif choice == "📍 Field Service & Map":
                 }
 
                 # --- HD SATELLITE MAP WITH 3D TILT ---
+                # --- HD SATELLITE MAP WITH 3D TILT ---
                 fig_map = px.scatter_mapbox(
                     map_data,
                     lat="Latitude",
@@ -353,15 +354,15 @@ elif choice == "📍 Field Service & Map":
                     mapbox_style="white-bg",
                     mapbox_layers=[
                         {
-                            "below": 'traces',
-                            "datatype": "raster",
+                            "below": "traces",
+                            "sourcetype": "raster",  # FIXED: Changed from 'datatype' to 'sourcetype'
                             "source": [
                                 "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                             ]
                         }
                     ],
-                    mapbox_pitch=50,     # 📐 Tilts map to a 3D angle (0 = flat top-down, 60 = heavy 3D)
-                    mapbox_bearing=15,   # 🧭 Rotates map perspective slightly
+                    mapbox_pitch=50,     # 📐 Tilts map to a 3D angle
+                    mapbox_bearing=15,   # 🧭 Angles perspective
                     margin={"r":0, "t":0, "l":0, "b":0},
                     height=550
                 )
