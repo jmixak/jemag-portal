@@ -279,8 +279,8 @@ elif choice == "📝 Register New Profile":
                     conn.close()
         else:
             st.warning("⚠️ Please fill out all required fields marked with * (First Name, Last Name, Email).")
-            
-        elif choice == "📍 Field Service & Map":
+        
+    elif choice == "📍 Field Service & Map":
     st.subheader("📍 Field Service, Installations & Maintenance Hub")
     st.markdown("Track solar/battery installations across Nigeria, drop interactive GPS pins, and record maintenance service tickets.")
 
@@ -512,7 +512,7 @@ elif choice == "📝 Register New Profile":
                                 st.error(f"Error saving maintenance record: {e}")
 
 # --- TAB 4: BATTERY PRODUCTION LOGS (EVERYONE) ---
-elif choice == "🔋 Battery Production":
+    elif choice == "🔋 Battery Production":
     st.header("🔋 Comprehensive Battery QC & Production Log")
     
     tab1, tab2 = st.tabs(["📝 Log New Battery", "📊 View Production History"])
