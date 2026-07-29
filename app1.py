@@ -328,7 +328,7 @@ elif choice == "📍 Field Service & Map":
                 }
 
                 # --- HD SATELLITE MAP WITH 3D TILT ---
-                # --- HD SATELLITE MAP WITH 3D TILT ---
+                # --- GOOGLE HYBRID SATELLITE MAP (UPDATED IMAGERY + LABELS) ---
                 fig_map = px.scatter_mapbox(
                     map_data,
                     lat="Latitude",
@@ -355,14 +355,14 @@ elif choice == "📍 Field Service & Map":
                     mapbox_layers=[
                         {
                             "below": "traces",
-                            "sourcetype": "raster",  # FIXED: Changed from 'datatype' to 'sourcetype'
+                            "sourcetype": "raster",
                             "source": [
-                                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                                "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"  # 🛰️ Google Hybrid Satellite Tiles
                             ]
                         }
                     ],
-                    mapbox_pitch=50,     # 📐 Tilts map to a 3D angle
-                    mapbox_bearing=15,   # 🧭 Angles perspective
+                    mapbox_pitch=50,     # 📐 3D Tilt
+                    mapbox_bearing=15,   # 🧭 Camera Angle
                     margin={"r":0, "t":0, "l":0, "b":0},
                     height=550
                 )
