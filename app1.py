@@ -327,6 +327,7 @@ elif choice == "📍 Field Service & Map":
                     "System Down": "#D32F2F"          # Red
                 }
 
+                # --- HD SATELLITE MAP WITH 3D TILT ---
                 fig_map = px.scatter_mapbox(
                     map_data,
                     lat="Latitude",
@@ -343,14 +344,26 @@ elif choice == "📍 Field Service & Map":
                     },
                     color="CurrentStatus",
                     color_discrete_map=color_map,
-                    zoom=5,
+                    zoom=5.8,
                     center={"lat": 9.0820, "lon": 8.6753}, # Centered on Nigeria
-                    size_max=15
+                    size_max=18
                 )
+
                 fig_map.update_layout(
-                    mapbox_style="open-street-map",
+                    mapbox_style="white-bg",
+                    mapbox_layers=[
+                        {
+                            "below": 'traces',
+                            "datatype": "raster",
+                            "source": [
+                                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                            ]
+                        }
+                    ],
+                    mapbox_pitch=50,     # 📐 Tilts map to a 3D angle (0 = flat top-down, 60 = heavy 3D)
+                    mapbox_bearing=15,   # 🧭 Rotates map perspective slightly
                     margin={"r":0, "t":0, "l":0, "b":0},
-                    height=450
+                    height=550
                 )
                 st.plotly_chart(fig_map, use_container_width=True)
             else:
