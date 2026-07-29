@@ -330,6 +330,7 @@ elif choice == "📍 Field Service & Map":
                 # --- HD SATELLITE MAP WITH 3D TILT ---
                 # --- GOOGLE HYBRID SATELLITE MAP (UPDATED IMAGERY + LABELS) ---
                 # --- GOOGLE HYBRID SATELLITE WITH LOCATION PINS ---
+                # --- GOOGLE HYBRID SATELLITE (HIGH-VISIBILITY MARKERS) ---
                 fig_map = px.scatter_mapbox(
                     map_data,
                     lat="Latitude",
@@ -346,16 +347,15 @@ elif choice == "📍 Field Service & Map":
                     },
                     color="CurrentStatus",
                     color_discrete_map=color_map,
-                    zoom=5.8,
+                    zoom=6.5,
                     center={"lat": 9.0820, "lon": 8.6753}
                 )
 
-                # Make pins large and set pin shape
+                # Make dots large, bright, and fully solid
                 fig_map.update_traces(
                     marker=dict(
-                        size=28,            # 📍 Controls pin size (increased from default)
-                        symbol="marker",     # 📍 Location drop-pin shape
-                        opacity=1.0
+                        size=20,       # ⭕ Big, easily visible target size
+                        opacity=1.0    # 100% solid color over satellite terrain
                     )
                 )
 
@@ -370,8 +370,8 @@ elif choice == "📍 Field Service & Map":
                             ]
                         }
                     ],
-                    mapbox_pitch=50,
-                    mapbox_bearing=15,
+                    mapbox_pitch=50,     # 📐 3D Tilt perspective
+                    mapbox_bearing=15,   # 🧭 Camera angle
                     margin={"r":0, "t":0, "l":0, "b":0},
                     height=550
                 )
