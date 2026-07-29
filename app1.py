@@ -281,14 +281,13 @@ elif choice == "📝 Register New Profile":
             st.warning("⚠️ Please fill out all required fields marked with * (First Name, Last Name, Email).")
         
     elif choice == "📍 Field Service & Map":
-    st.subheader("📍 Field Service, Installations & Maintenance Hub")
-    st.markdown("Track solar/battery installations across Nigeria, drop interactive GPS pins, and record maintenance service tickets.")
-
-    tab_map, tab_new_install, tab_maintenance = st.tabs([
-        "🗺️ Live Site Map & Directory", 
-        "⚡ Register New Installation", 
-        "🔧 Record Maintenance Visit"
-    ])
+         st.subheader("📍 Field Service, Installations & Maintenance Hub")
+         st.markdown("Track solar/battery installations across Nigeria, drop interactive GPS pins, and record maintenance service tickets.")
+         tab_map, tab_new_install, tab_maintenance = st.tabs([
+             "🗺️ Live Site Map & Directory", 
+             "⚡ Register New Installation", 
+             "🔧 Record Maintenance Visit"
+         ])
 
     # -------------------------------------------------------------------------
     # TAB 1: LIVE MAP & SITE DIRECTORY
