@@ -512,9 +512,9 @@ elif choice == "📝 Register New Profile":
 
 # --- TAB 4: BATTERY PRODUCTION LOGS (EVERYONE) ---
     elif choice == "🔋 Battery Production":
-    st.header("🔋 Comprehensive Battery QC & Production Log")
+        st.header("🔋 Comprehensive Battery QC & Production Log")
     
-    tab1, tab2 = st.tabs(["📝 Log New Battery", "📊 View Production History"])
+        tab1, tab2 = st.tabs(["📝 Log New Battery", "📊 View Production History"])
     
     with tab1:
         with st.form("battery_pro_form", clear_on_submit=True):
