@@ -157,6 +157,7 @@ if st.session_state.role == "admin":
         "🔋 Battery Production",
         "📈 Analytics & Insights",
         "👨‍🎓 Student Evaluation",
+        "📍 Field Service & Map",
         "📝 Register New Profile"   # <--- NEW TAB
     ]
 else:
@@ -278,6 +279,237 @@ elif choice == "📝 Register New Profile":
                     conn.close()
         else:
             st.warning("⚠️ Please fill out all required fields marked with * (First Name, Last Name, Email).")
+            
+            elif choice == "📍 Field Service & Map":
+    st.subheader("📍 Field Service, Installations & Maintenance Hub")
+    st.markdown("Track solar/battery installations across Nigeria, drop interactive GPS pins, and record maintenance service tickets.")
+
+    tab_map, tab_new_install, tab_maintenance = st.tabs([
+        "🗺️ Live Site Map & Directory", 
+        "⚡ Register New Installation", 
+        "🔧 Record Maintenance Visit"
+    ])
+
+    # -------------------------------------------------------------------------
+    # TAB 1: LIVE MAP & SITE DIRECTORY
+    # -------------------------------------------------------------------------
+    with tab_map:
+        st.markdown("### 🗺️ Live Interactive Installation Map")
+        conn = get_db_connection()
+        if conn:
+            try:
+                df_inst = pd.read_sql("SELECT * FROM Installations", conn)
+                df_maint = pd.read_sql("SELECT * FROM MaintenanceLogs ORDER BY VisitDate DESC", conn)
+                conn.close()
+            except Exception as e:
+                st.error(f"Error reading records: {e}")
+                df_inst, df_maint = pd.DataFrame(), pd.DataFrame()
+        else:
+            df_inst, df_maint = pd.DataFrame(), pd.DataFrame()
+
+        if not df_inst.empty:
+            # Prepare map data (filter out missing Lat/Lon)
+            map_data = df_inst.dropna(subset=['Latitude', 'Longitude']).copy()
+            map_data['Latitude'] = pd.to_numeric(map_data['Latitude'], errors='coerce')
+            map_data['Longitude'] = pd.to_numeric(map_data['Longitude'], errors='coerce')
+            map_data = map_data.dropna(subset=['Latitude', 'Longitude'])
+
+            if not map_data.empty:
+                # Color map based on site status
+                color_map = {
+                    "Operational": "#00C853",        # Green
+                    "Maintenance Required": "#FFB300", # Yellow
+                    "System Down": "#D32F2F"          # Red
+                }
+
+                fig_map = px.scatter_mapbox(
+                    map_data,
+                    lat="Latitude",
+                    lon="Longitude",
+                    hover_name="ClientName",
+                    hover_data={
+                        "CityTown": True,
+                        "SystemCapacityKW": True,
+                        "BatteryCapacityKWh": True,
+                        "InverterBrandModel": True,
+                        "CurrentStatus": True,
+                        "Latitude": False,
+                        "Longitude": False
+                    },
+                    color="CurrentStatus",
+                    color_discrete_map=color_map,
+                    zoom=5,
+                    center={"lat": 9.0820, "lon": 8.6753}, # Centered on Nigeria
+                    size_max=15
+                )
+                fig_map.update_layout(
+                    mapbox_style="open-street-map",
+                    margin={"r":0, "t":0, "l":0, "b":0},
+                    height=450
+                )
+                st.plotly_chart(fig_map, use_container_width=True)
+            else:
+                st.warning("No installations have valid GPS Latitude/Longitude values yet. Add coordinates to view pins!")
+
+            st.divider()
+
+            # Display Data Tables
+            col_t1, col_t2 = st.columns(2)
+            with col_t1:
+                st.markdown("### 📋 Installed Sites Directory")
+                st.dataframe(df_inst, use_container_width=True)
+            with col_t2:
+                st.markdown("### 🛠️ Maintenance History Logs")
+                st.dataframe(df_maint, use_container_width=True)
+        else:
+            st.info("No installation sites recorded yet. Click on 'Register New Installation' to add your first site!")
+
+    # -------------------------------------------------------------------------
+    # TAB 2: REGISTER NEW INSTALLATION
+    # -------------------------------------------------------------------------
+    with tab_new_install:
+        st.markdown("### ⚡ Register Installed System & Set Map Pin")
+        with st.form("new_installation_form"):
+            c1, c2 = st.columns(2)
+            with c1:
+                client_name = st.text_input("Client Name *")
+                phone_no = st.text_input("Phone Number")
+                city_town = st.text_input("City / Town *")
+                full_address = st.text_area("Full Site Address")
+                installer_name = st.text_input("Lead Installer Name")
+
+            with c2:
+                sys_kw = st.number_input("System Capacity (kW)", min_value=0.0, step=0.5, value=5.0)
+                batt_kwh = st.number_input("Battery Capacity (kWh)", min_value=0.0, step=0.5, value=10.0)
+                inverter_model = st.text_input("Inverter Brand / Model", value="Felicity 5kVA")
+                batt_sn = st.text_input("Battery Serial Number (Optional)")
+                install_date = st.date_input("Installation Date", value=datetime.date.today())
+                current_status = st.selectbox("Current System Status", ["Operational", "Maintenance Required", "System Down"])
+
+            st.markdown("#### 📍 Map Pin & GPS Coordinates")
+            cg1, cg2, cg3 = st.columns(3)
+            with cg1:
+                lat = st.number_input("Latitude (e.g. 9.8965)", format="%.6f", value=9.8965)
+            with cg2:
+                lon = st.number_input("Longitude (e.g. 8.8583)", format="%.6f", value=8.8583)
+            with cg3:
+                gmaps_link = st.text_input("Google Maps Location Link")
+
+            submit_install = st.form_submit_button("💾 Save Installation & Drop Pin")
+
+            if submit_install:
+                if not client_name or not city_town:
+                    st.error("Please fill in the required fields (Client Name & City/Town).")
+                else:
+                    conn = get_db_connection()
+                    if conn:
+                        try:
+                            cursor = conn.cursor()
+                            query = """
+                                INSERT INTO Installations 
+                                (ClientName, PhoneNumber, CityTown, FullAddress, Latitude, Longitude, 
+                                 GoogleMapsLink, SystemCapacityKW, BatteryCapacityKWh, InverterBrandModel, 
+                                 BatterySerialNumber, InstallerName, InstallationDate, CurrentStatus)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            """
+                            cursor.execute(query, (
+                                client_name, phone_no, city_town, full_address, lat, lon,
+                                gmaps_link, sys_kw, batt_kwh, inverter_model,
+                                batt_sn, installer_name, install_date, current_status
+                            ))
+                            conn.commit()
+                            cursor.close()
+                            conn.close()
+                            st.success(f"✅ Installation for '{client_name}' registered successfully!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error saving installation: {e}")
+
+    # -------------------------------------------------------------------------
+    # TAB 3: RECORD MAINTENANCE VISIT
+    # -------------------------------------------------------------------------
+    with tab_maintenance:
+        st.markdown("### 🔧 Record Service / Maintenance Visit")
+        
+        conn = get_db_connection()
+        inst_options = {}
+        if conn:
+            try:
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("SELECT InstallationID, ClientName, CityTown, BatterySerialNumber, SystemCapacityKW, BatteryCapacityKWh, InverterBrandModel, PhoneNumber, FullAddress, GoogleMapsLink FROM Installations")
+                sites = cursor.fetchall()
+                cursor.close()
+                conn.close()
+                for s in sites:
+                    label = f"{s['ClientName']} ({s['CityTown']}) - SN: {s['BatterySerialNumber'] or 'N/A'}"
+                    inst_options[label] = s
+            except Exception as e:
+                st.error(f"Error fetching sites: {e}")
+
+        if not inst_options:
+            st.warning("No installation sites found. Please register an installation first.")
+        else:
+            selected_site_label = st.selectbox("Select Installation Site *", list(inst_options.keys()))
+            site = inst_options[selected_site_label]
+
+            with st.form("maintenance_form"):
+                mc1, mc2 = st.columns(2)
+                with mc1:
+                    m_client = st.text_input("Client Name", value=site['ClientName'], disabled=True)
+                    m_phone = st.text_input("Phone Number", value=site['PhoneNumber'] or "")
+                    m_city = st.text_input("City / Town", value=site['CityTown'] or "")
+                    m_address = st.text_area("Full Site Address", value=site['FullAddress'] or "")
+                    m_gmaps = st.text_input("Google Maps Location Link", value=site['GoogleMapsLink'] or "")
+                    m_tech = st.text_input("Technician Name *")
+
+                with mc2:
+                    m_sn = st.text_input("Battery Serial Number", value=site['BatterySerialNumber'] or "")
+                    m_kw = st.number_input("System Capacity (kW)", value=float(site['SystemCapacityKW'] or 0.0))
+                    m_kwh = st.number_input("Battery Capacity (kWh)", value=float(site['BatteryCapacityKWh'] or 0.0))
+                    m_inverter = st.text_input("Inverter Brand / Model", value=site['InverterBrandModel'] or "")
+                    m_date = st.date_input("Date of Visit", value=datetime.date.today())
+                    m_status = st.selectbox("Current System Status", ["Operational", "Maintenance Required", "System Down"])
+
+                m_purpose = st.selectbox("Purpose of Visit", ["Routine Inspection", "Emergency Repair", "Capacity Upgrade", "Firmware / BMS Calibration", "Warranty Return"])
+                m_issues = st.text_area("Issues Observed", placeholder="Describe any problems found on site...")
+                m_action = st.text_area("Action Taken", placeholder="Describe repairs, replaced parts, or adjustments made...")
+
+                submit_maint = st.form_submit_button("💾 Save Maintenance Log")
+
+                if submit_maint:
+                    if not m_tech:
+                        st.error("Please enter the Technician Name.")
+                    else:
+                        conn = get_db_connection()
+                        if conn:
+                            try:
+                                cursor = conn.cursor()
+                                # 1. Insert into MaintenanceLogs
+                                m_query = """
+                                    INSERT INTO MaintenanceLogs 
+                                    (InstallationID, BatterySerialNumber, ClientName, PhoneNumber, CityTown, 
+                                     FullAddress, GoogleMapsLink, SystemCapacityKW, BatteryCapacityKWh, 
+                                     InverterBrandModel, PurposeOfVisit, CurrentStatus, IssuesObserved, 
+                                     ActionTaken, TechnicianName, VisitDate)
+                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                """
+                                cursor.execute(m_query, (
+                                    site['InstallationID'], m_sn, site['ClientName'], m_phone, m_city,
+                                    m_address, m_gmaps, m_kw, m_kwh,
+                                    m_inverter, m_purpose, m_status, m_issues,
+                                    m_action, m_tech, m_date
+                                ))
+                                
+                                # 2. Update site status in Installations table
+                                cursor.execute("UPDATE Installations SET CurrentStatus = %s WHERE InstallationID = %s", (m_status, site['InstallationID']))
+                                
+                                conn.commit()
+                                cursor.close()
+                                conn.close()
+                                st.success(f"✅ Maintenance visit logged for '{site['ClientName']}'!")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error saving maintenance record: {e}")
 
 # --- TAB 4: BATTERY PRODUCTION LOGS (EVERYONE) ---
 elif choice == "🔋 Battery Production":
