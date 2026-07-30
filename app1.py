@@ -752,6 +752,7 @@ elif choice == "📈 Analytics & Insights":
         df['Estimated_kWh'] = (df['CellCapacityAh'] * 51.2) / 1000
 
         # --- KPI SUMMARY CARDS ---
+        # --- KPI SUMMARY CARDS ---
         kpi1, kpi2, kpi3, kpi4 = st.columns(4)
         
         with kpi1:
@@ -760,8 +761,11 @@ elif choice == "📈 Analytics & Insights":
             total_kwh = df['Estimated_kWh'].sum()
             st.metric(label="⚡ Total Storage Deployed", value=f"{total_kwh:.1f} kWh")
         with kpi3:
-            top_bms = df['BMSBrand'].mode()[0] if not df['BMSBrand'].dropna().empty else "N/A"
-            st.metric(label="⚙️ Primary BMS Brand", value=f"{top_bms}")
+            # Clean BMSModel for top KPI reading
+            clean_models = df['BMSModel'].dropna().astype(str).str.strip()
+            clean_models = clean_models[~clean_models.isin(['nan', '', 'None'])]
+            top_model = clean_models.mode()[0] if not clean_models.empty else "N/A"
+            st.metric(label="⚙️ Top BMS Model", value=f"{top_model}")
         with kpi4:
             most_common_cap = int(df['CellCapacityAh'].mode()[0]) if not df['CellCapacityAh'].dropna().empty else 120
             st.metric(label="📦 Main Pack Size", value=f"{most_common_cap} Ah")
@@ -805,19 +809,25 @@ elif choice == "📈 Analytics & Insights":
 
         st.divider()
 
-        # --- ROW 2: BMS BRANDS & CAPACITY CLASSES ---
+       # --- ROW 2: BMS MODELS & CAPACITY CLASSES ---
         col3, col4 = st.columns(2)
 
         with col3:
-            st.markdown("### ⚙️ BMS Brand Distribution")
-            bms_counts = df['BMSBrand'].value_counts().reset_index()
-            bms_counts.columns = ['BMS Brand', 'Units Installed']
+            st.markdown("### ⚙️ BMS Model Distribution")
+            
+            # Clean up BMSModel string variations (trailing spaces, lowercase, nan)
+            df_bms = df.copy()
+            df_bms['BMSModel'] = df_bms['BMSModel'].fillna('Unspecified').astype(str).str.strip()
+            df_bms['BMSModel'] = df_bms['BMSModel'].replace({'nan': 'Unspecified', '': 'Unspecified', 'None': 'Unspecified'})
+
+            bms_counts = df_bms['BMSModel'].value_counts().reset_index()
+            bms_counts.columns = ['BMS Model', 'Units Installed']
 
             fig_bms = px.bar(
                 bms_counts, 
-                x='BMS Brand', 
+                x='BMS Model', 
                 y='Units Installed',
-                color='BMS Brand',
+                color='BMS Model',
                 text='Units Installed',
                 color_discrete_sequence=px.colors.qualitative.Set2
             )
