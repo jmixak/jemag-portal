@@ -854,9 +854,22 @@ elif choice == "📈 Analytics & Insights":
 
         # --- ROW 3: CLIENT DISTRIBUTION ---
         st.markdown("### 👥 Top Clients & Order Volume")
-        client_counts = df['ClientName'].value_counts().head(10).reset_index()
+
+        # 1. Clean whitespace and filter out blank/nan entries
+        df_client = df.copy()
+        df_client['ClientName'] = df_client['ClientName'].fillna('').astype(str).str.strip()
+        df_client = df_client[~df_client['ClientName'].isin(['nan', '', 'None'])]
+
+        # 2. Allow user to adjust view limit dynamically
+        col_c1, col_c2 = st.columns([3, 1])
+        with col_c2:
+            top_n = st.number_input("Clients to display", min_value=5, max_value=50, value=15, step=5)
+
+        # 3. Calculate client order counts
+        client_counts = df_client['ClientName'].value_counts().head(top_n).reset_index()
         client_counts.columns = ['Client Name', 'Packs Delivered']
 
+        # 4. Render chart with dynamic height so text stays legible
         fig_client = px.bar(
             client_counts, 
             x='Packs Delivered', 
@@ -866,5 +879,9 @@ elif choice == "📈 Analytics & Insights":
             color_discrete_sequence=['#0F4C81']
         )
         fig_client.update_traces(textposition='outside')
-        fig_client.update_layout(yaxis=dict(autorange="reversed"), height=300)
+        
+        # Adjust height based on how many clients are shown
+        dynamic_height = max(300, len(client_counts) * 28)
+        fig_client.update_layout(yaxis=dict(autorange="reversed"), height=dynamic_height)
+        
         st.plotly_chart(fig_client, use_container_width=True)
