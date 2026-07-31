@@ -269,10 +269,10 @@ elif choice == "📝 Register New Profile":
                     # Insert role-specific data into child tables
                     if role_type == "Staff":
                         query_staff = "INSERT INTO Staff (PersonID, Role) VALUES (%s, %s)"
-                        cursor.execute(query_staff, (person_id, staff_role))
+                        cursor.execute(query_staff, (staff_role))
                     elif role_type == "IT Student":
                         query_student = "INSERT INTO ITStudents (PersonID, School, FocusArea, AssignedSupervisor) VALUES (%s, %s, %s, %s)"
-                        cursor.execute(query_student, (person_id, school, focus_area, supervisor))
+                        cursor.execute(query_student, (Student_School, focus_area, Assigned_Supervisor))
 
                     conn.commit()
                     cursor.close()
