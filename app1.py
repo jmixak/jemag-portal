@@ -179,7 +179,6 @@ st.divider()
 # MAIN PAGE ROUTING (IF / ELIF BRANCHES)
 # =============================================================================
 
-# --- TAB 1: VIEW MASTER DIRECTORY (ADMIN ONLY) ---
 if choice == "🏢 View Master Directory":
     st.header("📋 Staff & IT Student Directory")
     conn = get_db_connection()
@@ -269,13 +268,17 @@ elif choice == "📝 Register New Profile":
                     # Insert role-specific data into child tables
                     if role_type == "Staff":
                         query_staff = "INSERT INTO Staff (PersonID, Role) VALUES (%s, %s)"
-                        cursor.execute(query_staff, (staff_role))
+                        # FIX 1: Included person_id in the parameters tuple
+                        cursor.execute(query_staff, (person_id, staff_role))
+                    
                     elif role_type == "IT Student":
                         query_student = "INSERT INTO ITStudents (PersonID, School, FocusArea, AssignedSupervisor) VALUES (%s, %s, %s, %s)"
-                        cursor.execute(query_student, (Student_School, focus_area, Assigned_Supervisor))
+                        # FIX 2: Corrected variable names to match input fields (school, supervisor) + added person_id
+                        cursor.execute(query_student, (person_id, school, focus_area, supervisor))
 
                     conn.commit()
                     cursor.close()
+                    st.cache_data.clear()  # Clear Streamlit cache so directory updates immediately
                     st.success(f"✅ Profile created successfully for {first_name} {last_name}! (ID: {person_id})")
                 except Exception as e:
                     st.error(f"❌ Error saving profile: {e}")
@@ -283,7 +286,6 @@ elif choice == "📝 Register New Profile":
                     conn.close()
         else:
             st.warning("⚠️ Please fill out all required fields marked with * (First Name, Last Name, Email).")
-
 # --- TAB 4: FIELD SERVICE & MAP ---
 elif choice == "📍 Field Service & Map":
     st.subheader("📍 Field Service, Installations & Maintenance Hub")
