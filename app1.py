@@ -373,29 +373,29 @@ elif choice == "📍 Field Service & Map":
                 }
 
                 fig_map = scatter_map_fn(
-    map_data,
-    lat="Latitude",
-    lon="Longitude",
-    hover_name="ClientName",
-    hover_data={
-        "CityTown": True,
-        "SystemCapacityKW": True,
-        "BatteryCapacityKWh": True,
-        "InverterBrandModel": True,
-        "CurrentStatus": True,
-        "Latitude": False,
-        "Longitude": False
-    },
-    color="CurrentStatus",
-    color_discrete_map=color_map,
-    zoom=5,
-    center={"lat": 9.0820, "lon": 8.6753},
-    size_max=15
-)
-fig_map.update_layout(
-    margin={"r": 0, "t": 0, "l": 0, "b": 0},
-    height=450
-)
+                    map_data,
+                    lat="Latitude",
+                    lon="Longitude",
+                    hover_name="ClientName",
+                    hover_data={
+                        "CityTown": True,
+                        "SystemCapacityKW": True,
+                        "BatteryCapacityKWh": True,
+                        "InverterBrandModel": True,
+                        "CurrentStatus": True,
+                        "Latitude": False,
+                        "Longitude": False
+                    },
+                    color="CurrentStatus",
+                    color_discrete_map=color_map,
+                    zoom=5,
+                    center={"lat": 9.0820, "lon": 8.6753},
+                    size_max=15
+                )
+                fig_map.update_layout(
+                    margin={"r": 0, "t": 0, "l": 0, "b": 0},
+                    height=450
+                )
                 st.plotly_chart(fig_map, use_container_width=True)
             else:
                 st.warning("No installations have valid GPS Latitude/Longitude values yet. Add coordinates to view pins!")
