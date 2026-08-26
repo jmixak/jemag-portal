@@ -1,29 +1,43 @@
 import streamlit as st
+import os
 
-# Import custom view modules
+# Import View Modules
 from views.master_directory import render_master_directory, render_student_evaluation, render_register_profile
+from views.battery_production import render_battery_production
 from views.travel_log import render_travel_log
 from views.analytics import render_analytics
 
 # Page Configuration
 st.set_page_config(page_title="Jemag Portal", page_icon="⚡", layout="wide")
 
-# Load CSS Styles
-try:
+# Apply CSS
+if os.path.exists("style.css"):
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-except Exception:
-    pass
 
-# User Role Session State Setup
+# Top Brand Header
+col_logo, col_title = st.columns([1, 5])
+with col_logo:
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=110)
+with col_title:
+    st.title("JEMAG Solar & Battery Operations Portal")
+
+st.divider()
+
+# Session State Role Setup
 if "role" not in st.session_state:
     st.session_state.role = "admin"
 
-# Navigation Menu Router
-st.sidebar.title("Navigation Menu")
+# Sidebar Branding & Navigation
+with st.sidebar:
+    if os.path.exists("logo.png"):
+        st.image("logo.png", use_container_width=True)
+    st.title("Navigation")
 
 if st.session_state.role == "admin":
     menu_options = [
+        "🔋 Battery Production Log",
         "🏢 View Master Directory",  
         "👨‍🎓 Student Evaluation",
         "📝 Register New Profile",
@@ -33,10 +47,12 @@ if st.session_state.role == "admin":
 else:
     menu_options = ["🧳 Travel Log"]
 
-choice = st.sidebar.radio("Go to", menu_options)
+choice = st.sidebar.radio("Select Page", menu_options)
 
-# Route to corresponding View Page
-if choice == "🏢 View Master Directory":
+# Router Logic
+if choice == "🔋 Battery Production Log":
+    render_battery_production()
+elif choice == "🏢 View Master Directory":
     render_master_directory()
 elif choice == "👨‍🎓 Student Evaluation":
     render_student_evaluation()

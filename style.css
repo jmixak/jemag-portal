@@ -1,13 +1,33 @@
-/* Jemag Portal Custom Styling */
+/* Jemag Portal Full Custom Styling */
 .stApp {
     background-color: #f8f9fa;
 }
 
-div.block-container {
-    padding-top: 2rem;
+/* Header & Title Adjustments */
+h1, h2, h3 {
+    color: #0F4C81 !important;
+    font-weight: 700 !important;
+    padding-bottom: 0.5rem;
 }
 
+/* Sidebar Radio Menu Font & Spacing */
+[data-testid="stSidebar"] {
+    background-color: #ffffff;
+    padding-top: 1rem;
+}
+
+[data-testid="stSidebar"] .stRadio label {
+    font-size: 1.15rem !important;
+    font-weight: 600 !important;
+    padding: 8px 12px !important;
+    border-radius: 6px;
+    margin-bottom: 4px;
+}
+
+/* Primary Action Buttons */
 .stButton > button {
     border-radius: 8px;
     font-weight: 600;
+    height: 3rem;
+    font-size: 1rem;
 }
