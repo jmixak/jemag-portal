@@ -109,7 +109,7 @@ with st.sidebar:
 
     # PIN Authentication Box
     st.subheader("🔑 Access Control")
-    admin_pin = st.secrets.get("admin_pin", "1234")
+    admin_pin = st.secrets.get("admin_pin", "5464")
     entered_pin = st.text_input("Enter Admin PIN", type="password", help="Default PIN: 1234")
     
     if entered_pin == str(admin_pin):
