@@ -47,6 +47,9 @@ def set_blurred_background(image_base_name):
         </style>
         """
         st.markdown(css_code, unsafe_allow_html=True)
+        
+# Compatibility wrapper for Plotly 6.0+ (scatter_map) and older versions (scatter_mapbox)
+scatter_map_fn = getattr(px, "scatter_map", getattr(px, "scatter_mapbox", None))
 
 # Apply the background blur graphic
 set_blurred_background("jemag logo back")
@@ -369,31 +372,30 @@ elif choice == "📍 Field Service & Map":
                     "System Down": "#D32F2F"
                 }
 
-                fig_map = px.scatter_mapbox(
-                    map_data,
-                    lat="Latitude",
-                    lon="Longitude",
-                    hover_name="ClientName",
-                    hover_data={
-                        "CityTown": True,
-                        "SystemCapacityKW": True,
-                        "BatteryCapacityKWh": True,
-                        "InverterBrandModel": True,
-                        "CurrentStatus": True,
-                        "Latitude": False,
-                        "Longitude": False
-                    },
-                    color="CurrentStatus",
-                    color_discrete_map=color_map,
-                    zoom=5,
-                    center={"lat": 9.0820, "lon": 8.6753},
-                    size_max=15
-                )
-                fig_map.update_layout(
-                    mapbox_style="open-street-map",
-                    margin={"r":0, "t":0, "l":0, "b":0},
-                    height=450
-                )
+                fig_map = scatter_map_fn(
+    map_data,
+    lat="Latitude",
+    lon="Longitude",
+    hover_name="ClientName",
+    hover_data={
+        "CityTown": True,
+        "SystemCapacityKW": True,
+        "BatteryCapacityKWh": True,
+        "InverterBrandModel": True,
+        "CurrentStatus": True,
+        "Latitude": False,
+        "Longitude": False
+    },
+    color="CurrentStatus",
+    color_discrete_map=color_map,
+    zoom=5,
+    center={"lat": 9.0820, "lon": 8.6753},
+    size_max=15
+)
+fig_map.update_layout(
+    margin={"r": 0, "t": 0, "l": 0, "b": 0},
+    height=450
+)
                 st.plotly_chart(fig_map, use_container_width=True)
             else:
                 st.warning("No installations have valid GPS Latitude/Longitude values yet. Add coordinates to view pins!")
