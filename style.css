@@ -1,0 +1,13 @@
+/* Jemag Portal Custom Styling */
+.stApp {
+    background-color: #f8f9fa;
+}
+
+div.block-container {
+    padding-top: 2rem;
+}
+
+.stButton > button {
+    border-radius: 8px;
+    font-weight: 600;
+}
