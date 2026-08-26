@@ -393,8 +393,25 @@ elif choice == "📍 Field Service & Map":
                     size_max=15
                 )
                 fig_map.update_layout(
-                    margin={"r": 0, "t": 0, "l": 0, "b": 0},
-                    height=450
+                    # Configure Satellite / Terrain Hybrid view
+                map_layout_args = {
+                    "margin": {"r": 0, "t": 0, "l": 0, "b": 0},
+                    "height": 450
+                }
+
+                # Support both Plotly 6.0+ (map) and older versions (mapbox)
+                tile_layer = [{
+                    "below": "traces",
+                    "sourcetype": "raster",
+                    "source": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"]  # Google Satellite + Labels
+                }]
+
+                if hasattr(fig_map.layout, "map") and fig_map.layout.map:
+                    fig_map.update_layout(map_style="white-bg", map_layers=tile_layer, **map_layout_args)
+                else:
+                    fig_map.update_layout(mapbox_style="white-bg", mapbox_layers=tile_layer, **map_layout_args)
+
+                st.plotly_chart(fig_map, use_container_width=True)
                 )
                 st.plotly_chart(fig_map, use_container_width=True)
             else:
