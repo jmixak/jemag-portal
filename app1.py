@@ -372,6 +372,10 @@ elif choice == "📍 Field Service & Map":
                     "System Down": "#D32F2F"
                 }
 
+                # Center dynamically on registered sites
+                avg_lat = map_data['Latitude'].mean()
+                avg_lon = map_data['Longitude'].mean()
+
                 fig_map = scatter_map_fn(
                     map_data,
                     lat="Latitude",
@@ -388,31 +392,33 @@ elif choice == "📍 Field Service & Map":
                     },
                     color="CurrentStatus",
                     color_discrete_map=color_map,
-                    zoom=5,
-                    center={"lat": 9.0820, "lon": 8.6753},
+                    zoom=12,  # Zoomed in so rooftops/buildings are visible
+                    center={"lat": avg_lat, "lon": avg_lon},
                     size_max=15
                 )
-                fig_map.update_layout(
-                    # Configure Satellite / Terrain Hybrid view
-                map_layout_args = {
-                    "margin": {"r": 0, "t": 0, "l": 0, "b": 0},
-                    "height": 450
-                }
 
-                # Support both Plotly 6.0+ (map) and older versions (mapbox)
+                # Google Satellite + Labels Hybrid Layer
                 tile_layer = [{
                     "below": "traces",
                     "sourcetype": "raster",
-                    "source": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"]  # Google Satellite + Labels
+                    "source": ["https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"]
                 }]
 
-                if hasattr(fig_map.layout, "map") and fig_map.layout.map:
-                    fig_map.update_layout(map_style="white-bg", map_layers=tile_layer, **map_layout_args)
-                else:
-                    fig_map.update_layout(mapbox_style="white-bg", mapbox_layers=tile_layer, **map_layout_args)
+                try:
+                    fig_map.update_layout(
+                        mapbox_style="white-bg",
+                        mapbox_layers=tile_layer,
+                        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+                        height=500
+                    )
+                except Exception:
+                    fig_map.update_layout(
+                        map_style="white-bg",
+                        map_layers=tile_layer,
+                        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+                        height=500
+                    )
 
-                st.plotly_chart(fig_map, use_container_width=True)
-                )
                 st.plotly_chart(fig_map, use_container_width=True)
             else:
                 st.warning("No installations have valid GPS Latitude/Longitude values yet. Add coordinates to view pins!")
